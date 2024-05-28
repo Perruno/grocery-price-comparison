@@ -1,39 +1,44 @@
-const express = require('express');
-const axios = require('axios');
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-const rapidApiKey = '64de0ed6b3msh9229ac50362fe02p1f6274jsna4f3c65cd08d'; // Replace with your RapidAPI key
-const rapidApiHost = 'grocery-pricing-api.p.rapidapi.com'; // Replace with your RapidAPI host
-
-app.get('/', (req, res) => {
-    res.send('Welcome to the Grocery Pricing API!');
+document.getElementById('search-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const query = document.getElementById('search-query').value;
+    fetchPrices(query);
 });
 
-app.get('/searchGrocery', async (req, res) => {
-    const keyword = req.query.keyword;
-    if (!keyword) {
-        return res.status(400).json({ error: 'Keyword parameter is required' });
+function fetchPrices(query) {
+    // Mock data
+    const prices = {
+        "Store A": Math.random() * 10,
+        "Store B": Math.random() * 10,
+        "Store C": Math.random() * 10
+    };
+
+    let resultSection = document.createElement('section');
+    resultSection.id = 'results';
+    resultSection.innerHTML = '<h2>Prices for ' + query + '</h2>';
+
+    let priceList = document.createElement('ul');
+    let bestPrice = Infinity;
+    let bestStore = '';
+
+    for (let store in prices) {
+        let price = prices[store].toFixed(2);
+        let listItem = document.createElement('li');
+        listItem.textContent = store + ': $' + price;
+        priceList.appendChild(listItem);
+
+        if (prices[store] < bestPrice) {
+            bestPrice = prices[store];
+            bestStore = store;
+        }
     }
 
-    try {
-        const response = await axios.get(`https://${rapidApiHost}/searchGrocery`, {
-            params: {
-                keyword,
-                perPage: '10',
-                page: '1'
-            },
-            headers: {
-                'X-RapidAPI-Key': rapidApiKey,
-                'X-RapidAPI-Host': rapidApiHost
-            }
-        });
+    resultSection.appendChild(priceList);
+    let bestPriceDisplay = document.createElement('p');
+    bestPriceDisplay.innerHTML = '<strong>Best Price: ' + bestStore + ' - $' + bestPrice.toFixed(2) + '</strong>';
+    resultSection.appendChild(bestPriceDisplay);
 
-        res.json(response.data);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Failed to fetch grocery data' });
-    }
+    document.querySelector('main').appendChild(resultSection);
+}
 });
 
 app.listen(PORT, () => {
